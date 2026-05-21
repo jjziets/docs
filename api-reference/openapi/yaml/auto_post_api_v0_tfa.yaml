@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v0/tfa/:
+    post:
+      summary: Create tfa login
+      tags:
+      - Two-Factor Auth
+      description: 'Log a user in by verifying a given 2FA code and tfa_method  Requirements: - tfa_method - the 2FA method
+        being used ("sms" or "totp" or "email") - code - the 2FA code provided by the user to verify - tfa_secret - the secret
+        token provided to the user in the previous step of auth either from the UI or CLI (if using SMS) - (optional) backup_code
+        - a one time use backup code that can be used if the user is unable to access their normal 2FA method  UI/Client:
+        Called by a user using a valid tfa_secret that was created after passing the first step of auth (username/password)  CLI
+        flow: The user calls this endpoint using their API Key as a Bearer token and a tfa_secret only if using SMS 2FA  On
+        Success: A new 2FA Session API Key that expires in 24 hours will be created for the user (and returned in the response
+        if called from CLI) An audit log record will be created for the successful 2FA login'
+      security:
+      - BearerAuth: []
+      x-scope: user_write
+      x-rateLimit: 1.1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tfa_method_id:
+                  type: string
+                  description: The tfa method id
+                code:
+                  type: string
+                  description: The code
+                secret:
+                  type: string
+                  description: The secret
+                tfa_method:
+                  type: string
+                  description: The tfa method
+                backup_code:
+                  type: string
+                  description: The backup code
+                admin:
+                  type: string
+                  description: The admin
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean

@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v1/template/:
+    get:
+      summary: Get template
+      tags:
+      - Other
+      description: 'Run OpenSearch with custom params. It''ll return template ids. Pull the templates with those ids from
+        the db  OpenSearch looks for query string matches inside these columns: ["name", "hash_id", "image", "tag", "desc",
+        "command", "repo", "args_str"]  e.g. #1: {"query": "mars"} -> Returns any template that has a fuzzy value for "mars"
+        in above columns e.g. #2: {"query": "mars", "select_filters":{"hash_id":{"eq":"49c538d097ad6437413b83711c9f61e8"}}}
+        -> Returns Everything from Example 1 but filtered so that only results with specified hash_id are returned e.g. #3:
+        { "query": "mars", "order_by": [{"col": "created_at", "dir": "desc"}]} -> Returns everything from Example 1 but ordered
+        by the created_at column and in descending order.'
+      security:
+      - BearerAuth: []
+      x-scope: user_read
+      x-rateLimit: 1.9
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean

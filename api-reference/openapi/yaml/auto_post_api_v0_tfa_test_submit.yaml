@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v0/tfa/test-submit/:
+    post:
+      summary: Create tfa test submit
+      tags:
+      - Two-Factor Auth
+      description: 'Confirm a new 2FA method by verifying a code.  - SMS flow: verifies Twilio code using two_factor_challenge
+        + phone_number. After success, inserts user_tfa_methods row with method="sms" if not present. - Authenticator flow:
+        verifies TOTP code against provided secret If valid, encrypts secret and inserts user_tfa_methods row with method="totp".
+        - Generates and returns backup codes if this is the user''s first ever 2FA method. - Sends email notification when
+        2FA method is added.'
+      security:
+      - BearerAuth: []
+      x-scope: user_write
+      x-rateLimit: 1.1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The code
+                secret:
+                  type: string
+                  description: The secret
+                tfa_method:
+                  type: string
+                  description: The tfa method
+                phone_number:
+                  type: string
+                  description: The phone number
+                label:
+                  type: string
+                  description: The label
+                apikey_id:
+                  type: string
+                  description: The apikey id
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean

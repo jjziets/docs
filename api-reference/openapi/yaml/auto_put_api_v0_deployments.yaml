@@ -1,0 +1,148 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v0/deployments/:
+    put:
+      summary: Update deployments
+      tags:
+      - Deployments
+      security:
+      - BearerAuth: []
+      x-scope: instance_write
+      x-rateLimit: 2.0
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name
+                tag:
+                  type: string
+                  description: The tag
+                image:
+                  type: string
+                  description: The image
+                search_params:
+                  type: string
+                  description: The search params
+                file_hash:
+                  type: string
+                  description: The file hash
+                file_size:
+                  type: string
+                  description: The file size
+                env:
+                  type: string
+                  description: The env
+                storage:
+                  type: string
+                  description: The storage
+                ttl:
+                  type: string
+                  description: The ttl
+                version_label:
+                  type: string
+                  description: The version label
+                docker_login_user:
+                  type: string
+                  description: The docker login user
+                docker_login_pass:
+                  type: string
+                  description: The docker login pass
+                docker_login_repo:
+                  type: string
+                  description: The docker login repo
+                cold_workers:
+                  type: string
+                  description: The cold workers
+                max_workers:
+                  type: string
+                  description: The max workers
+                min_load:
+                  type: string
+                  description: The min load
+                min_cold_load:
+                  type: string
+                  description: The min cold load
+                target_util:
+                  type: string
+                  description: The target util
+                cold_mult:
+                  type: string
+                  description: The cold mult
+                max_queue_time:
+                  type: string
+                  description: The max queue time
+                target_queue_time:
+                  type: string
+                  description: The target queue time
+                inactivity_timeout:
+                  type: string
+                  description: The inactivity timeout
+                overrecruit_ratio:
+                  type: string
+                  description: The overrecruit ratio
+                autoscaler_instance:
+                  type: string
+                  description: The autoscaler instance
+                apikey_id:
+                  type: string
+                  description: The apikey id
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean

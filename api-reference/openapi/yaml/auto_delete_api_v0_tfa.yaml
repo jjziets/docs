@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v0/tfa/:
+    delete:
+      summary: Delete tfa login
+      tags:
+      - Two-Factor Auth
+      description: 'Remove (disable) a specific 2FA method after verifying the request.  Requires one of: - SMS code (tfa_method="sms",
+        code=xxxxxx) - Authenticator TOTP code (tfa_method="totp", code=xxxxxx) - Email code (tfa_method="email", code=xxxxxx)
+        - Backup code (backup_code=XXXX-XXXX-XXXX)  Also requires specifying which method to remove via: - tfa_method_id (preferred),
+        OR - tfa_method ("sms" or "totp" or "email")  On success: - soft-delete the specified user_tfa_methods row (deleted_at)
+        - if no active methods remain: set users.tfa_enabled=False and soft-delete all tfa_backup_codes. - audit log + email
+        notification ("2FA method removed.")'
+      security:
+      - BearerAuth: []
+      x-scope: user_write
+      x-rateLimit: 1.1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apikey_id:
+                  type: string
+                  description: The apikey id
+                target_id:
+                  type: string
+                  description: The target id
+                tfa_method_id:
+                  type: string
+                  description: The tfa method id
+                code:
+                  type: string
+                  description: The code
+                secret:
+                  type: string
+                  description: The secret
+                tfa_method:
+                  type: string
+                  description: The tfa method
+                backup_code:
+                  type: string
+                  description: The backup code
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean

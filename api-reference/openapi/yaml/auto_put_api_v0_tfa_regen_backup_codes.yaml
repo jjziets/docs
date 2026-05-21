@@ -1,0 +1,92 @@
+openapi: 3.1.0
+info:
+  title: Vast.ai API (auto-generated endpoint)
+  description: Auto-generated from vast backend code introspection. Edit this file by promoting it to a curated split YAML
+    (drop the auto_ prefix) before making manual changes.
+  version: 1.0.0
+servers:
+- url: https://console.vast.ai
+  description: Production server
+paths:
+  /api/v0/tfa/regen-backup-codes/:
+    put:
+      summary: Update tfa regen backup codes
+      tags:
+      - Two-Factor Auth
+      description: 'Regenerate backup codes.  Requires a validated 2FA action: - SMS: provide {"tfa_method":"sms","code":...,"secret":...}
+        (secret from api.tfa.sms) - Authenticator: provide {"tfa_method":"totp","code":...} - Email: provide {"tfa_method":"email","code":...,"secret":...}
+        (secret from api.tfa.email)  On success: - soft-deletes any existing backup codes - generates and returns 10 new backup
+        codes (plaintext returned once) - sends an email notification'
+      security:
+      - BearerAuth: []
+      x-scope: user_write
+      x-rateLimit: 1.1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tfa_method_id:
+                  type: string
+                  description: The tfa method id
+                code:
+                  type: string
+                  description: The code
+                secret:
+                  type: string
+                  description: The secret
+                tfa_method:
+                  type: string
+                  description: The tfa method
+                backup_code:
+                  type: string
+                  description: The backup code
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        msg:
+          type: string
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
