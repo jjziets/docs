@@ -19,7 +19,7 @@ Install from the official Vast host setup flow, then confirm the daemon, Docker 
 
 ## Before You Install
 
-Complete [Hardware Prep](/host/hardware-prep), [Storage Setup](/host/storage-setup), and [Network & Ports](/host/network-ports). Your account must be host-enabled and the hosting agreement accepted; see [Account & Hosting Agreement](/host/account-hosting-agreement).
+Complete [Hardware Prep](/host/hardware-prep), [Storage Setup](/host/storage-setup), and [Network & Ports](/host/network-ports). Your account must be host-enabled and the hosting agreement accepted; see [Host Account and Agreement](/host/account-hosting-agreement).
 
 <a id="install-command" />
 ## Install Command
@@ -29,6 +29,10 @@ Copy the current command from the official [Vast host setup page](https://cloud.
 The command can include an account-specific machine installation key. Do not reuse commands from old notes, shell history, screenshots, third-party guides, or another account. A regular API key is not a setup-page installation key.
 
 For team-owned hosts, switch into the intended team context before opening the setup page or copying the command. See [Host Teams](/host/host-teams#install-in-the-right-context).
+
+<Frame caption="Host setup page showing the Install Manager step. Installer commands are omitted because they contain account-specific keys.">
+  ![Host setup page with the Install Manager step selected and setup notes visible](/images/host-setup-install-manager.webp)
+</Frame>
 
 <a id="host-installer-wizard" />
 ## Host Installer Wizard
@@ -97,6 +101,18 @@ Common causes:
 - Storage quota/filesystem mismatch.
 
 Refresh the setup page, copy a fresh command, confirm host account access, and rerun the wizard. Use the wizard error, installer log, and daemon logs to decide what to fix.
+
+<a id="identify-4xx" />
+### Daemon identify or API 4xx errors
+
+If the installer or daemon logs show an HTTP 4xx while registering or identifying the machine, work through these causes in order:
+
+1. **Truncated or mangled setup key.** Always copy the full command with the setup page's copy button; a partial paste fails authentication. Get a fresh command and rerun.
+2. **Expired setup key.** Setup commands are single-use and expire. Refresh the setup page and copy a fresh command — do not rerun an old one from shell history.
+3. **Account not converted to a host account.** The API rejects machines from client-only accounts. See [Host Account and Agreement](/host/account-hosting-agreement#agreement-stuck).
+4. **Stale installer or retired endpoint.** An old downloaded installer can call endpoints that no longer exist. Re-download the installer from the setup page instead of reusing a cached copy.
+
+If the log shows a local driver, Docker, or cgroup error rather than an API 4xx, use the general causes above and [Host Diagnostics](/host/common-errors-diagnostics#logs).
 
 ## Logs
 

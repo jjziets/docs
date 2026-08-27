@@ -41,12 +41,14 @@ vastai self-test machine <machine_id> [--debugging] [--ignore-requirements] [--t
 This command tests if a machine meets specific requirements and
 runs a series of tests to ensure it's functioning correctly.
 
+If the self-test fails, decode the exact message with the [Self-Test Reference](/host/self-test-reference). For machine-level errors surfaced outside the self-test, see the [Machine Error Reference](/host/machine-errors).
+
 ## Examples
 
 ```bash
-vast self-test machine 12345
-vast self-test machine 12345 --debugging
-vast self-test machine 12345 --support-bundle-dir /tmp/vast-bundles
+vastai self-test machine 12345
+vastai self-test machine 12345 --debugging
+vastai self-test machine 12345 --support-bundle-dir /tmp/vast-bundles
 ```
 
 ## Global Options
