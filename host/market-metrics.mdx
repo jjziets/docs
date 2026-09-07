@@ -18,7 +18,7 @@ All Vast market metric methods require a host-enabled account. Some views also r
 | Method | Where |
 | --- | --- |
 | Dashboard | [cloud.vast.ai/host/market](https://cloud.vast.ai/host/market/) |
-| CLI | `vastai metrics ...` |
+| CLI | `vastai metrics ...` — install the [Vast CLI](/cli/hello-world) |
 | REST API | `/api/v0/metrics/gpu/...` |
 
 Accounts not enabled for hosting can receive `401` errors. If the dashboard says "Register a machine to view market stats" or "Market stats are available once you have at least one registered machine," register a host machine first, then return to the page.
@@ -31,6 +31,10 @@ If you are evaluating hardware before registering a machine, public third-party 
 - **GPU Overview**: current supply/demand, 30-day rental rate, and median price by GPU type.
 - **GPU Locations**: geographic distribution.
 - If the page is blocked by the registered-machine requirement, use the Vast hosting calculator or public market dashboards for preliminary planning until the host account has a registered machine.
+
+<Frame caption="Host Market GPU Overview with supply, availability, rental rate, performance, and median price columns.">
+  ![Host Market GPU Overview](/images/host-market-gpu-overview.webp)
+</Frame>
 
 ## GPU Overview Income Estimate
 
@@ -65,7 +69,7 @@ This is a better starting point than price alone because utilization matters. A 
 Install or upgrade:
 
 ```bash
-pip install --upgrade vastai
+curl -fsSL https://vast.ai/install.sh | bash
 ```
 
 Current snapshot:
@@ -98,7 +102,7 @@ vastai metrics gpu-locations --rented false
 vastai metrics gpu-locations --raw
 ```
 
-References: [metrics gpu](/host/cli/metrics-gpu), [metrics gpu-trends](/host/cli/metrics-gpu-trends), [metrics gpu-locations](/host/cli/metrics-gpu-locations).
+References: [metrics gpu](/cli/reference/metrics-gpu), [metrics gpu-trends](/cli/reference/metrics-gpu-trends), [metrics gpu-locations](/cli/reference/metrics-gpu-locations).
 
 ## Market Comparison Sources
 
