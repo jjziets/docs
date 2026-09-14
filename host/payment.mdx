@@ -16,7 +16,7 @@ For team-owned host machines, earnings and payout settings belong to the team ac
 
 ## Earnings Page
 
-![](/images/console-earning.webp)
+![Vast.ai Earnings page with balance summaries and an earnings chart](/images/console-earning.webp)
 
 The Earnings page shows:
 
@@ -28,7 +28,7 @@ The Earnings page shows:
 
 ## Payout Methods
 
-Vast currently supports:
+The payout providers shown under [Earnings > Payout Account](https://cloud.vast.ai/earnings/) are:
 
 - Wise
 - PayPal
@@ -43,21 +43,21 @@ Use **Earnings > Payout Account** to connect, view, remove, or switch payout pro
 Only one payout account can be active at a time. To switch accounts, first deactivate the current account, then activate the new one.
 
 <Note>
-Vast is not responsible for payout delays, account holds, compliance reviews, or rejected payments from Wise, PayPal, Stripe, or other financial institutions.
+The [Terms of Use, Disclaimer of Website](https://vast.ai/terms) include disclaimers for third-party products or services offered through the website. The [Miscellaneous section](https://vast.ai/terms) limits responsibility for delays or failures caused by circumstances beyond Vast's reasonable control. The [Limitations of Liability section](https://vast.ai/terms) notes that some exclusions may not apply under certain state laws.
 </Note>
 
 ## Payout Schedule
 
 | Item | Rule |
 | --- | --- |
-| Minimum payout | $20 USD |
-| Invoice generation | Fridays around 12:00 PM Pacific time |
-| Payment timing | Usually 2 to 4 weeks from earnings being posted, depending on region and payout method |
+| Invoice minimum | At least $20 USD per [published payout guidance](https://docs.vast.ai/host/payment#minimum-payout-threshold) |
+| Invoice generation | Weekly on Fridays per [published payout guidance](https://docs.vast.ai/host/payment#invoice-generation) |
+| Payment timing | [Published payout guidance](https://docs.vast.ai/host/payment#payment-timeline) says a first payout typically takes up to two weeks. Provider processing may take longer depending on the provider and your region. Separately, [Hosting Agreement — Hardware as a Service Payments](https://cloud.vast.ai/host/agreement) specifies weekly billing periods and payment payable within 14 days of a completed billing period. |
 | Paid status | Vast submitted the payout; the provider may still be processing it |
 
-Your balance rolls forward until it reaches the $20 minimum and a valid payout account is active.
+Balances below $20 roll forward until the minimum threshold is reached, per [published payout guidance](https://docs.vast.ai/host/payment#minimum-payout-threshold).
 
-<a id="get-an-invoice" />
+<span id="get-an-invoice" aria-hidden="true" />
 ## Payout History And Invoices
 
 Start from **Account > Earnings**.
@@ -78,39 +78,39 @@ To customize invoice details, update **Settings > Invoice Information**, or open
 
 ## Frequently Asked Questions
 
-<a id="when-paid" />
+<span id="when-paid" aria-hidden="true" />
 ### When will I get paid?
 
-Plan for 2 to 4 weeks from when earnings are posted. Invoices are generated weekly on Fridays around 12:00 PM Pacific time. Payment is generally scheduled about two weeks after posting, then the payout provider may need more time to settle the funds.
+[Published payout guidance](https://docs.vast.ai/host/payment#payment-timeline) says a first payout typically takes up to two weeks. Provider processing may take longer depending on the provider and your region. The contractual clock is different: [Hosting Agreement — Hardware as a Service Payments](https://cloud.vast.ai/host/agreement) specifies weekly billing periods, with payment payable within 14 days of a completed billing period. Check the invoice and provider status for the actual payout.
 
-<a id="paid-invoice" />
+<span id="paid-invoice" aria-hidden="true" />
 ### Why does my invoice show Paid when funds have not arrived?
 
 Paid means Vast submitted the payout to your selected provider. It does not guarantee that Wise, PayPal, or Stripe has completed settlement.
 
 Check that your payout account is active, verified, allowed to receive business payments, and not under review or hold.
 
-<a id="pending-invoice" />
+<span id="pending-invoice" aria-hidden="true" />
 ### What does Pending mean?
 
 The invoice was generated but has not entered the payment phase. It changes to Paid after Vast submits the payout.
 
-<a id="direct-bank-transfer" />
+<span id="direct-bank-transfer" aria-hidden="true" /><span id="how-do-i-set-up-payouts" aria-hidden="true" />
 ### Can Vast send direct bank transfers?
 
-No. Vast supports Wise, PayPal, and Stripe. Direct bank transfers, ACH, wire, and SWIFT payouts are not available.
+[Vast's published payout guidance](https://docs.vast.ai/host/payment#can-vast-ai-send-my-payout-via-direct-bank-transfer-ach-swift-wire-transfer-etc-) says direct bank transfers, including ACH, wire and SWIFT, are unavailable.
 
-<a id="invoice-not-generating" />
+<span id="invoice-not-generating" aria-hidden="true" />
 ### Why are invoices not generating?
 
-Invoices require both an active payout account and at least $20 in balance.
+[Published payout guidance](https://docs.vast.ai/host/payment#invoice-generation) says invoices require a valid payout method connected and a balance of at least $20 USD.
 
-<a id="manual-invoice" />
+<span id="manual-invoice" aria-hidden="true" />
 ### Can I generate an invoice manually?
 
 You can download payout records from **Account > Earnings > Payout History**. For billing history, use **Billing > Generate Billing History** with **Include Charges** enabled.
 
-<a id="vast-user-earnings" />
+<span id="vast-user-earnings" aria-hidden="true" />
 ### How can I have earnings as a Vast user?
 
 Hosts earn from machine rentals. Users may also earn referral or template income; see the [referral program](/guides/reference/referral-program).
