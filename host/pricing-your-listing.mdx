@@ -20,23 +20,27 @@ Confirm:
 - Offer end date matches the commitment you can honor.
 - Similar machines have been checked in [GPU Market Metrics](/host/market-metrics).
 - Gross revenue has been estimated with the [Earnings Model](/host/earning).
-- You understand that price changes affect future rental contracts only.
+- You understand current-term price protection and client acceptance of higher extension rates. See the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145).
 
-<a id="listing-controls" />
+<span id="listing-controls" aria-hidden="true" />
 ## Listing Controls
 
 | Control | CLI option | Meaning |
 | --- | --- | --- |
-| On-demand GPU price | `--price_gpu` | Dollars per GPU-hour. |
+| On-demand GPU price | `--price_gpu` | Dollars per GPU-hour. See the [Vast CLI listing options](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/machines.py#L230-L241). |
 | Interruptible min bid | `--price_min_bid` | Lowest bid you will accept for interruptible rentals. |
 | Reserved discount | `--discount_rate` | Maximum long-term prepay discount. |
 | Minimum GPU chunk | `--min_chunk` | Smallest GPU group renters can select. |
 | Offer end date | `--end_date` or `--duration` | How long new renters can accept the offer. |
-| Disk price | `--price_disk` | Dollars per GB per month for inactive storage. |
-| Bandwidth price | `--price_inetu`, `--price_inetd` | Dollars per GB uploaded/downloaded. |
+| Disk price | `--price_disk` | Dollars per GB per month for inactive storage. See the [Vast CLI listing options](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/machines.py#L230-L241). |
+| Bandwidth price | `--price_inetu`, `--price_inetd` | Dollars per GB uploaded/downloaded. See the [Vast CLI listing options](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/machines.py#L230-L241). |
 | Volume offer | `--vol_size`, `--vol_price` | Optional separately listed storage. |
 
 DPH means dollars per hour, usually GPU compute price.
+
+<Frame caption="Listing settings for on-demand, bid, bandwidth, storage, minimum-GPU, and expiration controls.">
+  ![Machine listing and pricing controls](/images/host-listing-pricing-controls.webp)
+</Frame>
 
 ## Starting Workflow
 
@@ -60,29 +64,30 @@ For a 4-GPU machine with comparable prices of P10 `$0.35`, median `$0.45`, and P
 | Interruptible min bid | `$0.25/GPU/hr` |
 | Reserved discount | `0.30` |
 | Minimum GPU chunk | `1` |
-| Offer end date | Maintenance-safe date |
+| Offer end date | 12/31/2026 (example) |
 
 ```bash
---price_gpu 0.45 \
+vastai list machine <machine-id> \
+  --price_gpu 0.45 \
   --price_min_bid 0.25 \
   --discount_rate 0.30 \
   --min_chunk 1 \
   --end_date 12/31/2026
 ```
 
-Adjust for your market, operating cost, and risk tolerance. Use the current [vastai list machine](/host/cli/list-machine) syntax.
+Adjust for your market, operating cost, and risk tolerance. Use the current [vastai list machine](/cli/reference/list-machine) syntax.
 
 ## Changing Price Later
 
-When a renter accepts an offer, its terms become that rental contract. Later changes affect only future rentals.
+When a renter accepts an offer, its terms become that rental contract. For price increases, the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145) distinguishes the remaining current term, billed at its original rate, from an extension at a new rate accepted by the renter.
 
 | Change | Effect |
 | --- | --- |
-| Raise or lower price | New renters see the new price; active renters keep the accepted price. |
-| Shorten offer end date | New contracts use the new date; active rental end dates do not shorten. |
-| Unlist machine | Stops new rentals; active contracts continue. |
+| Raise or lower price | New renters see the updated offer price. Existing renters keep the original rate for their current term; a higher extension rate requires their acceptance. See the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145). |
+| Shorten offer end date | Review existing rental dates before editing; confirm the effect on active rentals. |
+| Unlist machine | Use [`vastai unlist machine`](/cli/reference/unlist-machine) to remove offers. Review rental commitments separately before taking the host offline. |
 
-Keep the machine online until the latest active rental end date.
+Before planned downtime, review active rental and storage commitments and follow [Maintenance Windows](/host/maintenance-windows).
 
 ## When To Adjust
 
@@ -100,5 +105,5 @@ Keep the machine online until the latest active rental end date.
 | --- | --- |
 | Revenue model | [Earnings & Pricing Model](/host/earning) |
 | Market data | [GPU Market Metrics](/host/market-metrics) |
-| CLI listing | [vastai list machine](/host/cli/list-machine) |
-| Interruptible bid floor | [vastai set min-bid](/host/cli/set-min-bid) |
+| CLI listing | [vastai list machine](/cli/reference/list-machine) |
+| Interruptible bid floor | [vastai set min-bid](/cli/reference/set-min-bid) |

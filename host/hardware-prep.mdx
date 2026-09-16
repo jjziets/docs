@@ -14,13 +14,13 @@ Prepare the host machine before installing the Vast host software, including OS,
 
 ## What should be ready before I run the host installer?
 
-Before installing, make sure the host has supported same-type GPUs, native Ubuntu/Linux, an AVX-capable CPU, at least one physical CPU core per listed GPU, adequate RAM, fast SSD/NVMe storage, working compatible GPU drivers, stable public networking, and enough direct ports forwarded for both TCP and UDP.
+Before installing for the current NVIDIA verification path, prepare same-model NVIDIA GPUs, supported native Ubuntu Server, at least two physical CPU cores per GPU, adequate RAM, fast SSD/NVMe storage, compatible NVIDIA drivers, stable public networking, and direct ports forwarded for both TCP and UDP. Use an AVX-capable x86_64 CPU; clarify the published ARM64/AVX requirement before choosing ARM64 hardware.
 
 For Docker storage, the preferred setup is `/var/lib/docker` mounted on XFS with project quotas enabled in `/etc/fstab`; see [Storage Setup](/host/storage-setup#fstab-example).
 
-For verification, the self-test preflight enforces the current minimum thresholds (CUDA support, reliability gate, direct ports, PCIe bandwidth, internet bandwidth, VRAM, system RAM). The canonical list lives in [Verification Stages: requirements](/host/verification-stages#additional-requirements-for-verification).
+By default, self-test preflight checks CUDA support, reliability, direct ports, PCIe bandwidth, internet bandwidth, VRAM, and system RAM before launching a test instance. `--ignore-requirements` can bypass failed requirement checks for diagnosis; it does not establish verification eligibility. See [Verification Stages: requirements](/host/verification-stages#additional-requirements-for-verification).
 
-For CPU capacity, use the physical-core rule: the host should have at least one visible physical CPU core per visible GPU. Hyperthreads and logical CPUs do not count as physical cores.
+For CPU capacity, follow the current published verification requirement: at least two physical CPU cores per GPU. Hyperthreads and logical CPUs do not count as additional physical cores.
 
 ## How do I inventory a clean host?
 
@@ -32,21 +32,27 @@ uname -a
 lscpu | sed -n '1,25p'
 lspci | grep -i nvidia
 lsblk -f
-findmnt / /data0 /var/lib/docker
+findmnt /
+findmnt /data0
+findmnt /var/lib/docker
 df -h /
 ip -brief address
 ```
 
+Run the three `findmnt` checks separately. `findmnt` exits with status `1` and no output
+when a target is not mounted; that can be expected for optional `/data0`, but it should
+not hide the independent root and Docker-storage results.
+
 Save the output somewhere private and redact public IPs or account details before sharing it. If `/var/lib/docker` is already mounted, Docker already has data, or old Vast services are still installed on a supposedly clean machine, resolve that before treating the host as freshly provisioned.
 
-<a id="ubuntu-versions" />
+<span id="ubuntu-versions" aria-hidden="true" />
 ## What Ubuntu versions should hosts use?
 
 Use **Ubuntu 24.04 LTS** for new installs when possible. **Ubuntu 22.04 LTS** also works and may be useful when a driver or operational constraint requires it. Confirm the OS works with your GPU driver, Docker, storage setup, and the Vast host installer before listing a production host.
 
-Do not blindly copy old Ubuntu 22.04 cgroup-v1 workaround commands onto Ubuntu 24.04. Docker, kernel, and cgroup defaults differ by OS version; follow the current Vast host installer path for the OS you are actually using, and treat cgroup errors as install diagnostics to fix before listing.
+Do not blindly copy old Ubuntu 22.04 cgroup-v1 workaround commands onto Ubuntu 24.04. Check the running host’s cgroup version and Docker configuration, use the current Vast host installer for that OS, and investigate cgroup errors before listing. A workaround for one configuration may not apply to another.
 
-<a id="nvidia-driver-version" />
+<span id="nvidia-driver-version" aria-hidden="true" />
 ## What NVIDIA driver version should I use?
 
 Use a stable NVIDIA driver that supports your GPU and a CUDA runtime compatible with the Vast self-test image family. Verification requires CUDA-compatible driver/runtime support for CUDA 11.8 or newer. Verify GPU visibility and driver health with `nvidia-smi` before listing.

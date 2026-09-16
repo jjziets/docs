@@ -8,11 +8,13 @@ personas:
   - headless-operator
 ---
 
+import HostPortRange from '/snippets/host/port-range.mdx';
+
 <div className="persona-chips"><span className="persona-chip">Pro Operator</span><span className="persona-chip">Headless / DC</span></div>
 
 Configure public inbound networking before verification. Vast hosts need direct ports reachable from outside the host LAN.
 
-<a id="ports-per-gpu" />
+<span id="ports-per-gpu" aria-hidden="true" />
 ## Ports Per GPU
 
 Self-test requires at least 3 direct ports per listed GPU. For production hosting, plan for about 100 direct ports per listed GPU. One instance can map up to 64 ports, and a larger range gives headroom while old mappings are being released and new instances are starting.
@@ -25,7 +27,7 @@ Self-test requires at least 3 direct ports per listed GPU. For production hostin
 
 The forwarded router/firewall range must match the range configured in the host software. The 100-port guidance is practical headroom, not a self-test minimum.
 
-<a id="tcp-udp" />
+<span id="tcp-udp" aria-hidden="true" />
 ## TCP And UDP
 
 Forward both TCP and UDP for the configured direct port range. TCP-only forwarding can pass some checks while still failing renter workloads that need UDP.
@@ -34,39 +36,33 @@ Forward both TCP and UDP for the configured direct port range. TCP-only forwardi
 
 In the Host Installer Wizard, enter the same range you forwarded.
 
-For the raw installer:
-
-```bash
-sudo python3 ./install "$VAST_HOST_KEY" --ports 40000 40799
-```
+For the [raw installer](/host/installing-host-software#headless-fallback), include `--ports 40000 40799` in the install command, replacing the range with your forwarded ports.
 
 For an installed host:
 
-```bash
-echo -n "40000-40799" | sudo tee /var/lib/vastai_kaalia/host_port_range
-sudo systemctl restart vastai.service
-sudo tail -n 50 /var/lib/vastai_kaalia/kaalia.log | grep host_port_range
-```
+<HostPortRange />
 
-The log should show `host_port_range: 40000 40799`.
+After applying the range, [test reachability from outside the LAN](#test-ports-outside-lan).
 
-<a id="cgnat-starlink-ipv6" />
+<span id="cgnat-starlink-ipv6" aria-hidden="true" />
 ## CGNAT, Starlink, IPv6-Only, Or No Public IP
 
-Vast instances need public inbound TCP and UDP reachability. CGNAT, double NAT without a real public forwarding path, many residential Starlink setups, incompatible IPv6-only service, blocked inbound ports, or no public inbound IP are not supported for hosting because renters and self-test must be able to reach the machine directly.
+Vast hosting requires a public IPv4 address with inbound TCP and UDP forwarding for the configured direct-port range. CGNAT and shared ISP addresses are not supported by the published setup requirements. With double NAT or an IPv6-only service, establish a working public IPv4 forwarding path before listing; an outbound internet connection alone is insufficient.
 
 Compare your router WAN IP with your public IP and test from outside the LAN. If the router does not have a public inbound address or cannot forward the configured ports to the host, use a network connection that provides public inbound connectivity before listing the machine.
 
-<a id="test-ports-outside-lan" />
+<span id="test-ports-outside-lan" aria-hidden="true" />
 ## Test Ports From Outside The LAN
 
-Same-LAN tests can be misleading because of NAT hairpinning. Test from a different network, such as mobile data, a cloud VM, or another external machine.
+Test from a different network, such as a cloud VM or a laptop on mobile data with Wi-Fi disconnected. A same-LAN test can fail without NAT hairpinning, or pass through a local hairpin path while Internet connections remain blocked by double-NAT forwarding problems or ISP firewall restrictions. Enabling hairpinning does not validate the external path; test from outside the host’s network even when local tests pass.
 
-On the host, start a temporary TCP listener and confirm it is listening:
+**Simple**
+
+On the host, start a temporary TCP listener in an empty directory. Leave it running while you test from another computer:
 
 ```bash
-sudo python3 -m http.server 40000 --bind 0.0.0.0
-sudo ss -ltnp | grep ':40000'
+VAST_PORT_TEST_DIR=$(mktemp -d) &&
+python3 -m http.server 40000 --bind 0.0.0.0 --directory "$VAST_PORT_TEST_DIR"
 ```
 
 From macOS or Linux outside the LAN:
@@ -83,9 +79,9 @@ Test-NetConnection PUBLIC_IP -Port 40000
 curl.exe http://PUBLIC_IP:40000/
 ```
 
-You can also use a public TCP checker such as [portchecker.co](https://portchecker.co/) for a quick outside-LAN TCP check.
+Use the TCP checks above from an external machine to test inbound TCP reachability.
 
-For UDP, watch for packets on the host:
+For UDP, open a second session on the host and watch for packets:
 
 ```bash
 sudo tcpdump -ni any udp port 40000
@@ -106,13 +102,33 @@ $udp.Send($bytes, $bytes.Length, "PUBLIC_IP", 40000)
 $udp.Close()
 ```
 
-Stop temporary listeners before running the installer.
+When testing is complete, press `Ctrl+C` in the listener session, then remove the empty directory:
+
+```bash
+rmdir "$VAST_PORT_TEST_DIR"
+```
+
+Stop `tcpdump` with `Ctrl+C` as well. Stop all temporary listeners before running the installer.
+
+<Accordion title="Advanced">
+
+If the external TCP test fails, use a second SSH session on the host to check whether the temporary server is listening:
+
+```bash
+sudo ss -ltnp | grep ':40000'
+```
+
+Run this check while the server is running. If no listener appears, fix that first; if it does, check the host firewall, router forwarding, and upstream network. Run the check again after stopping the server to confirm the temporary listener is gone.
+
+The empty serving directory keeps the test response predictable and avoids exposing files from your current directory. Port `40000` does not require running the HTTP server as root.
+
+</Accordion>
 
 During self-test, troubleshoot the exact public IP and port reported by the CLI, such as `https://PUBLIC_IP:PORT/progress`.
 
 ## Connectivity Failures
 
-Self-test timeouts and `Port Networking Issues` usually mean a network-path problem. [`vericode=8`](/host/glossary#vericode) means a host-facing machine error is present; use the exact visible message to confirm whether it is the port-networking case. See [Self-Test Reference: vericode=8](/host/self-test-reference#vericode-8) and [no response for 120s](/host/self-test-reference#no-response-120s).
+`Port Networking Issues` indicates that the platform’s inbound port-reachability check could not connect. A self-test timeout can also involve a missing progress server, a crashed container, or a stalled test; inspect the reported stage and logs. [`vericode=8`](/host/glossary#vericode) means a host-facing machine error is present; use the exact visible message to identify the cause. See [Self-Test Reference: vericode=8](/host/self-test-reference#vericode-8) and [no response for 120s](/host/self-test-reference#no-response-120s).
 
 ## Related Pages
 

@@ -13,7 +13,7 @@ personas:
 
 <div className="persona-chips"><span className="persona-chip">All host personas</span></div>
 
-<a id="how-verification-works" />
+<span id="how-verification-works" aria-hidden="true" />
 ## How Verification Works
 
 Verification is automated. A machine becomes eligible when it passes self-test and meets reliability, performance, hardware, network, and marketplace gates.
@@ -22,7 +22,7 @@ Verification is automated. A machine becomes eligible when it passes self-test a
 Eligibility does not guarantee immediate verification, search placement, or rentals.
 </Note>
 
-Verification is not permanent. Automation can move machines between Unverified, Verified, and Deverified as reliability, health, performance, network reachability, and marketplace conditions change.
+Vast’s [published verification guidance](https://github.com/vast-ai/docs/blob/175a318c27750ea64da94f043dda39ec5cb26259/host/hosting-overview.mdx#L281-L285) says a reliability drop alone does not remove verification. An active error causes deverification, and verification returns once the error clears.
 
 ## Main Factors
 
@@ -31,12 +31,12 @@ Verification is not permanent. Automation can move machines between Unverified, 
 | Reliability | The machine enters the verification pool when reliability is greater than 0.9. Higher reliability improves confidence. |
 | Hardware balance | GPU model/count, VRAM, CPU, RAM, PCIe bandwidth, storage, and network should match the GPU tier. |
 | Network | Stable bandwidth and reachable direct ports. |
-| Software | Compatible NVIDIA/AMD driver stack, CUDA/runtime health, Docker/GPU runtime health, and a clean host. |
-| DLPerf | Sustained real-world GPU throughput; PCIe, thermals, power, and drivers can affect it. |
+| Software | Compatible NVIDIA driver/CUDA stack, Docker/GPU runtime health, and a clean host. |
+| DLPerf | Estimated performance on typical deep-learning tasks; PCIe throughput, thermals, power, and drivers can affect measured performance. |
 | VM support | Optional, but can improve fit for some renter searches when enabled and supported. |
-| Marketplace demand | In-demand GPUs, strong reliability, enough VRAM, and good network/location are more likely to be prioritized. |
+| Marketplace demand | In-demand GPUs, strong reliability, enough VRAM, and good network are more likely to be prioritized. |
 
-<a id="supply-demand" />
+<span id="supply-demand" aria-hidden="true" />
 ## Supply And Demand
 
 Verification also considers renter demand and available supply. A healthy machine can wait if demand for that configuration is low, while scarce or high-demand configurations may be prioritized.
@@ -49,12 +49,12 @@ To improve fit:
 - Enable VM support only when the machine supports it cleanly.
 - Keep the system dedicated to Vast workloads.
 
-<a id="verification-time" />
+<span id="verification-time" aria-hidden="true" />
 ## How Long Can Verification Take?
 
-There is no fixed timeline. Passing self-test makes the machine eligible, but timing depends on automated checks, reliability, machine health, supply, demand, and platform policy.
+There is no fixed timeline. Passing self-test is one part of preparation; verification also depends on the published requirements, automated checks, reliability, machine health, supply, demand and platform policy.
 
-<a id="can-support-verify-my-machine" />
+<span id="can-support-verify-my-machine" aria-hidden="true" />
 ## Can Support Verify My Machine?
 
 No. Support can help with account issues or backend anomalies, but ordinary verification is not a manual support queue. Keep the machine healthy, eligible, and competitively listed while automation evaluates it.

@@ -17,7 +17,7 @@ Use this page to estimate gross host revenue before buying hardware, setting pri
 Earnings are not guaranteed. Demand, supply, reliability, search filters, location, and renter requirements all affect utilization.
 </Note>
 
-<a id="hosting-earnings" />
+<span id="hosting-earnings" aria-hidden="true" />
 ## Revenue Components
 
 Host earnings are based on the host-side rates you set. Client-facing totals can include separate Vast/client-side fees, so the amount a client pays can differ from the host-side earning rate shown to you.
@@ -39,7 +39,7 @@ gross host revenue =
 | Bandwidth | Upload and download usage charged at the host-side bandwidth rates. |
 | Volumes | Separate volume offers, if you enable and price them. |
 
-Changing prices affects new rental contracts. Existing contracts use the rates accepted when the renter started the instance or reservation.
+New rentals use the updated offer price. The [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145) states that an existing rental keeps its original rate through its current end date; a renter can accept a higher rate for an extension after that date.
 
 ## Compute-Only Monthly Model
 
@@ -49,7 +49,7 @@ monthly compute gross = rentable GPUs x hourly GPU price x 720 x utilization
 
 | Input | Meaning |
 | --- | --- |
-| `rentable GPUs` | GPUs expected to be rented during the month. |
+| `rentable GPUs` | GPU capacity offered for rental during the modeled period, before applying utilization. |
 | `hourly GPU price` | Expected host-side dollars per GPU-hour. Use comparable listings. |
 | `720` | 30 days x 24 hours. |
 | `utilization` | Share of time rented, such as `0.55` for 55%. |
@@ -66,9 +66,9 @@ For planning compute revenue, compare similar machines over the last 30 days:
 | Expected | `GPUs x median price x 720 x utilization` |
 | Optimistic | `GPUs x P90 price x 720 x utilization` |
 
-Use P90 only when your machine has a real advantage: strong reliability, better network, fast storage, better location, datacenter status, or scarce GPU supply. Then add realistic storage, bandwidth, and volume assumptions separately.
+Treat P90 as an optimistic scenario, not an expected rate. Compare similar machines and test the assumption against actual utilization. Add storage, bandwidth and volume assumptions separately.
 
-For a fast market-dashboard estimate, use the **GPU Overview** tab in [Host Market](https://cloud.vast.ai/host/market/): multiply `$/HR MED` by `% Rented (30D Avg)`, then multiply by `720` hours and your GPU count. See [GPU Market Metrics: GPU Overview Income Estimate](/host/market-metrics#gpu-overview-income-estimate).
+For an illustrative 30-day compute estimate, use the **GPU Overview** tab in [Host Market](https://cloud.vast.ai/host/market/): multiply `$/HR MED` by `% Rented (30D Avg) / 100`, then by `720` hours and your GPU count. This combines market statistics under a constant-price assumption; it is not measured or guaranteed revenue. See [GPU Market Metrics: GPU Overview Income Estimate](/host/market-metrics#gpu-overview-income-estimate).
 
 ## Compute-Only Example
 
@@ -111,7 +111,7 @@ Start near comparable market prices, then adjust from actual utilization.
 - New machines often need competitive pricing while they build reliability history.
 - Higher prices only work when renters value the machine's advantages.
 - Lower prices can improve utilization, but may reduce revenue if the machine was already rented.
-- Price changes affect new rental contracts only.
+- Protect the current rental term when repricing: an accepted higher extension rate starts after the current end date. See the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145).
 - Review trends over a week or month, not every short-term move.
 
 ## Net Margin
@@ -124,4 +124,4 @@ Subtract operating costs before judging profit:
 - Repairs and maintenance time.
 - Accounting, tax, and payment-provider costs.
 
-For payout timing, see [Host Payouts](/host/payment). For tax handling, see [Tax Guide for Hosts](/host/guide-to-taxes).
+For payout timing, see [Host Payouts](/host/payment).

@@ -13,12 +13,12 @@ Use market metrics to compare GPU supply, demand, pricing, and geography before 
 
 ## Access
 
-All Vast market metric methods require a host-enabled account. Some views also require the account to have at least one registered machine.
+Use a host-enabled account to access host market metrics. Some views also require the account to have at least one registered machine.
 
 | Method | Where |
 | --- | --- |
 | Dashboard | [cloud.vast.ai/host/market](https://cloud.vast.ai/host/market/) |
-| CLI | `vastai metrics ...` |
+| CLI | `vastai metrics ...` — install the [Vast CLI](/cli/hello-world) |
 | REST API | `/api/v0/metrics/gpu/...` |
 
 Accounts not enabled for hosting can receive `401` errors. If the dashboard says "Register a machine to view market stats" or "Market stats are available once you have at least one registered machine," register a host machine first, then return to the page.
@@ -29,8 +29,12 @@ If you are evaluating hardware before registering a machine, public third-party 
 
 - **Availability & Pricing**: historical supply/demand and P10/median/P90 prices.
 - **GPU Overview**: current supply/demand, 30-day rental rate, and median price by GPU type.
-- **GPU Locations**: geographic distribution.
+- **Location Map**: geographic distribution.
 - If the page is blocked by the registered-machine requirement, use the Vast hosting calculator or public market dashboards for preliminary planning until the host account has a registered machine.
+
+<Frame caption="Host Market GPU Overview with supply, availability, rental rate, performance, and median price columns.">
+  ![Host Market GPU Overview](/images/host-market-gpu-overview.webp)
+</Frame>
 
 ## GPU Overview Income Estimate
 
@@ -43,29 +47,42 @@ For a quick compute-only estimate, combine:
 | `% Rented (30D Avg)` | Approximate utilization for that GPU type over the last 30 days. |
 | `$/HR MED` | Median hourly GPU price for that GPU type. |
 
-```text
-average compute revenue per GPU-hour =
-  $/HR MED x (% Rented (30D Avg) / 100)
+**Simple**
 
-monthly compute estimate =
-  GPUs x $/HR MED x 720 x (% Rented (30D Avg) / 100)
-```
-
-Example: if `RTX 5090` shows `% Rented (30D Avg)` of `65.0%` and `$/HR MED` of `$0.361/hr`:
+Use a constant price and the 30-day rented percentage for a rough gross compute estimate:
 
 ```text
-0.361 x 0.65 = $0.23465 average gross compute revenue per hour per GPU
-0.361 x 720 x 0.65 = $168.95 gross compute revenue per month per GPU
+30-day estimate = GPUs x $/HR MED x 720 x (% Rented (30D Avg) / 100)
 ```
 
-This is a better starting point than price alone because utilization matters. A GPU with a higher hourly price can still earn less if it is rented less often. Treat this as a rough gross compute estimate; it does not include storage, bandwidth, volume revenue, power, cooling, hardware cost, taxes, payout timing, or downtime.
+This is an estimate, not measured host revenue. It excludes storage, bandwidth, volume revenue, power, cooling, hardware cost, taxes, payout timing, and downtime.
+
+<Accordion title="Advanced">
+
+There are 720 hours in 30 days. Multiplying the hourly price by the rented percentage accounts for time the GPU is not earning compute revenue:
+
+```text
+per GPU-hour = $/HR MED x (% Rented (30D Avg) / 100)
+30-day estimate = GPUs x per GPU-hour x 720
+```
+
+For example, if `RTX 5090` shows `% Rented (30D Avg)` of `65.0%` and `$/HR MED` of `$0.361/hr`:
+
+```text
+0.361 x 0.65 = $0.23465 per GPU-hour
+0.361 x 720 x 0.65 = $168.948, or about $168.95 per GPU over 30 days
+```
+
+Both results are illustrative gross compute estimates with constant price and utilization. A GPU with a higher hourly price can still earn less if it is rented less often.
+
+</Accordion>
 
 ## CLI
 
 Install or upgrade:
 
 ```bash
-pip install --upgrade vastai
+curl -fsSL https://vast.ai/install.sh | bash
 ```
 
 Current snapshot:
@@ -98,7 +115,7 @@ vastai metrics gpu-locations --rented false
 vastai metrics gpu-locations --raw
 ```
 
-References: [metrics gpu](/host/cli/metrics-gpu), [metrics gpu-trends](/host/cli/metrics-gpu-trends), [metrics gpu-locations](/host/cli/metrics-gpu-locations).
+References: [metrics gpu](/cli/reference/metrics-gpu), [metrics gpu-trends](/cli/reference/metrics-gpu-trends), [metrics gpu-locations](/cli/reference/metrics-gpu-locations).
 
 ## Market Comparison Sources
 
@@ -126,7 +143,7 @@ Common parameters:
 | --- | --- |
 | `verified` | `yes`, `no`, `all` |
 | `hosting_type` | `secure_cloud`, `community`, `all` |
-| `gpu_name` | GPU name, such as `RTX 4090` |
+| `gpu_name` | GPU name, such as `RTX 4090`, for `/api/v0/metrics/gpu/history/`. |
 | `start`, `end` | Unix timestamps |
 | `step` | Seconds between history points |
 
@@ -137,4 +154,4 @@ curl -H "Authorization: Bearer $API_KEY" \
 
 ## Freshness And Limits
 
-Market metrics update every 5 minutes. Location data can be cached for up to 2 hours. Each endpoint allows up to 5 requests per second per user.
+Read the [current snapshot API definition](https://github.com/vast-ai/docs/blob/bfa926c9421521767fa7411718bd31ea38b38528/api-reference/openapi/yaml/metrics_gpu.yaml), [historical trends API definition](https://github.com/vast-ai/docs/blob/bfa926c9421521767fa7411718bd31ea38b38528/api-reference/openapi/yaml/metrics_gpu_trends.yaml), and [locations API definition](https://github.com/vast-ai/docs/blob/bfa926c9421521767fa7411718bd31ea38b38528/api-reference/openapi/yaml/metrics_gpu_locations.yaml) for endpoint paths, request fields, and response shapes. These are the sources read for this page. They do not document a public update cadence, cache duration, or per-user request allowance, so this page makes no fixed promise about those behaviors.

@@ -7,6 +7,9 @@ personas:
   - headless-operator
 ---
 
+import HostInstallCommand from '/snippets/host/install-command.mdx';
+import HostPortRange from '/snippets/host/port-range.mdx';
+
 <div className="persona-chips"><span className="persona-chip">Headless / DC</span></div>
 
 Use this path when the host is installed and operated entirely over SSH, BMC, or IPMI: no display, keyboard, or desktop environment. It takes a clean Ubuntu Server machine to a listed Vast host from the command line.
@@ -17,7 +20,7 @@ Start with a **clean install of Ubuntu 24.04.x Server** (HWE kernel recommended)
 
 ## First SSH Connection After Provisioning
 
-On a newly installed or reprovisioned host, SSH may show a new host-key fingerprint. Confirm the fingerprint against your provider console, BMC/IPMI console, or expected reprovision event before accepting it. If the host was intentionally reinstalled and the new fingerprint is correct, remove the old known-host entry and reconnect:
+On a newly installed or reprovisioned host, SSH may show a new host-key fingerprint. Compare it with the fingerprint obtained through a trusted provider or BMC/IPMI console before accepting it; knowing that a reinstall occurred is not enough to verify the key. If the reinstall was intentional and the new fingerprint is confirmed, remove the old known-host entry and reconnect:
 
 ```bash
 ssh-keygen -R HOST_PUBLIC_IP
@@ -28,17 +31,17 @@ Do not accept a changed fingerprint if you cannot explain why it changed.
 
 ## Step 1: Update The System
 
-For SSH-only installs, use noninteractive `apt-get` so provider image config prompts do not block the session:
+For SSH-only installs, the following `apt-get` commands use noninteractive debconf answers and predefined dpkg conffile choices. Review the upgrade output; package scripts can still fail or require attention:
 
 ```bash
-sudo apt-get update
 APT_OPTS="-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
-sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS upgrade -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS dist-upgrade -y
+sudo apt-get update &&
+sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS upgrade -y &&
+sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS dist-upgrade -y &&
 sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS install -y update-manager-core
 ```
 
-This keeps existing local config files if Ubuntu asks about files such as `/etc/issue` during an SSH upgrade.
+For changed configuration files, `--force-confdef` takes the default dpkg action; `--force-confold` keeps the existing file when no default is available. Review important local configuration files after the upgrade.
 
 If you did not select the HWE kernel during install, install it now:
 
@@ -57,8 +60,8 @@ sudo reboot
 
 ```bash
 APT_OPTS="-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
+sudo apt-get update &&
 sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS install -y build-essential ubuntu-drivers-common
-sudo apt-get update
 ```
 
 Ask Ubuntu which NVIDIA driver it recommends for the installed GPUs:
@@ -67,11 +70,10 @@ Ask Ubuntu which NVIDIA driver it recommends for the installed GPUs:
 ubuntu-drivers devices
 ```
 
-Install the recommended stable driver. On a clean Ubuntu 24.04 test host, Ubuntu recommended `nvidia-driver-595-open`; your machine may recommend a different version.
+Review the available server/compute drivers with `sudo ubuntu-drivers list --gpgpu`. The command below lets Ubuntu select the best-matching driver for the installed hardware; the selected version can differ between machines.
 
 ```bash
-APT_OPTS="-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
-sudo DEBIAN_FRONTEND=noninteractive apt-get $APT_OPTS install -y nvidia-driver-595-open
+sudo ubuntu-drivers install --gpgpu
 ```
 
 Reboot:
@@ -86,11 +88,11 @@ After SSH reconnects, verify:
 nvidia-smi
 ```
 
-If `nvidia-smi` still fails after the package install, check whether `nouveau` is still bound to the GPUs and reboot before retrying the Vast installer.
+If `nvidia-smi` still fails after reboot, inspect its exact error and the kernel logs. Check for a loaded `nouveau` module when diagnosing a driver conflict, and repair the identified driver problem before retrying the Vast installer.
 
 ## Step 3: Disable Automatic Updates
 
-Automatic updates can break drivers while clients are renting your machine. Disable them and only update manually when the host is unlisted and idle:
+Unattended Ubuntu package updates can leave driver and userspace versions out of sync. Disable the Ubuntu unattended-upgrade paths below and schedule your own updates during planned maintenance, after checking rental and storage commitments. Vast’s managed software can also maintain selected components.
 
 ```bash
 sudo DEBIAN_FRONTEND=noninteractive apt-get purge --auto-remove unattended-upgrades -y
@@ -100,24 +102,24 @@ sudo systemctl disable apt-daily.timer
 sudo systemctl mask apt-daily.service
 ```
 
-Only update manually when your machine is unlisted and idle, inside a planned maintenance window. See [Maintenance Windows](/host/maintenance-windows).
+Schedule your manual updates inside a planned maintenance window. Unlist the machine to prevent new rentals and review existing rental and storage commitments before taking it offline. See [Maintenance Windows](/host/maintenance-windows).
 
 ## Step 4: X Server Config
 
-Vast containers need the X server configuration but not a desktop environment. On Ubuntu Server, run:
+Prepare the NVIDIA X-server configuration without installing a desktop environment. First check that `nvidia-xconfig` is available with `command -v nvidia-xconfig`. If it is missing, install the NVIDIA utilities package matching your selected driver and check again. Run the following only after the command is available:
 
 ```bash
 sudo nvidia-xconfig -a --cool-bits=28 --allow-empty-initial-configuration --enable-all-gpus
 ```
 
-If the machine started life as Ubuntu Desktop, remove GNOME first:
+If you are deliberately converting an Ubuntu Desktop installation to this headless setup, review the desktop packages you intend to remove first. VM passthrough also requires that GDM is not running:
 
 ```bash
-sudo apt-get update
-sudo apt-get -y upgrade
-sudo apt-get install -y libgtk-3-0 xinit xserver-xorg-core
-sudo apt-get remove -y gnome-shell
-sudo update-grub
+sudo apt-get update &&
+sudo apt-get -y upgrade &&
+sudo apt-get install -y libgtk-3-0 xinit xserver-xorg-core &&
+sudo apt-get remove -y gnome-shell &&
+sudo update-grub &&
 sudo nvidia-xconfig -a --cool-bits=28 --allow-empty-initial-configuration --enable-all-gpus
 ```
 
@@ -146,11 +148,11 @@ Find the NVMe, partition, RAID device, or LVM volume to use for Docker. It must 
 sudo cfdisk /dev/nvme0n1
 ```
 
-In the menu: choose **gpt** if asked for a label type, select **New** (Enter for the full disk), select **Write** and type **yes**, then **Quit**. This creates a partition at `/dev/nvme0n1p1`.
+For a confirmed empty target disk, choose **gpt** if asked for a label type, select free space and **New**, and review the proposed size. Select **Write**, confirm **yes**, then **Quit**. Verify the resulting partition with `lsblk` before formatting; `/dev/nvme0n1p1` below is only an example and the actual partition name can differ.
 
 **5c. Format as XFS:**
 
-If the target is already mounted somewhere else, such as `/data0`, unmount it first:
+If the confirmed target is mounted elsewhere, such as `/data0`, unmount it first. Stop if the unmount fails or the device is still in use; do not proceed to formatting:
 
 ```bash
 if findmnt -S /dev/nvme0n1p1 >/dev/null; then
@@ -189,7 +191,7 @@ UUID=a1b2c3d4-e5f6-7890-abcd-ef1234567890  /var/lib/docker  xfs  rw,auto,pquota,
 | `rw` | Read-write access. |
 | `auto` | Mount automatically at boot. |
 | `pquota` | Required by Vast; enables per-container storage quotas. |
-| `nofail` | System still boots if the drive has an issue. |
+| `nofail` | Boot can continue without this mount succeeding. Verify the Docker filesystem is mounted before hosting. |
 
 **5g. Mount and verify:**
 
@@ -204,7 +206,7 @@ You should see the NVMe or LVM volume mounted at `/var/lib/docker` with the corr
 
 ## Step 6: Enable GPU Persistence Mode
 
-GPU persistence keeps GPUs initialized between jobs so they idle at low power instead of fully reinitializing each time:
+GPU persistence keeps the NVIDIA driver loaded when no clients are using it, reducing initialization latency for later jobs:
 
 ```bash
 sudo bash -c '(crontab -l 2>/dev/null; echo "@reboot nvidia-smi -pm 1" ) | crontab -'
@@ -220,34 +222,27 @@ Keep the SSH session open until the wizard finishes. If the connection might dro
 tmux new -s vast-install
 ```
 
-The wizard should validate account access, drivers, hardware, storage, ports, network speed, installation, and self-test readiness. Do not reuse old `wget`/`python3 install` commands from notes, screenshots, third-party guides, or another account. The setup-page machine installation key is not the same as a normal Vast API key.
+The wizard includes checks for account access, drivers, hardware, storage, ports, network speed, installation and self-test readiness. Copy a fresh command from Setup for the intended account; its temporary installation key is different from a CLI account API key.
 
 If the SSH terminal cannot drive the TUI reliably, use the raw installer as a headless fallback. Include both the prepared Docker storage device and the direct port range:
 
-```bash
-read -rsp "Paste fresh Vast host setup key: " VAST_HOST_KEY
-echo
-sudo python3 ./install "$VAST_HOST_KEY" \
-  --no-driver \
-  --docker-partition /dev/mapper/vg1-lv--1 \
-  --ports 40000 40799
-unset VAST_HOST_KEY
-```
+<HostInstallCommand />
 
-Use `--no-driver` only after `nvidia-smi` shows all GPUs. Replace the Docker storage device and ports with your actual host values.
 
 ## Step 8: Configure GRUB Only When Needed
 
 Do not change kernel boot parameters during a normal Docker-only install unless you are fixing a specific driver problem or enabling [VM support](/host/vms). If you are preparing VM support, edit `/etc/default/grub` and add the VM-related options for your CPU platform:
 
+Preserve existing `GRUB_CMDLINE_LINUX` options when adding this setting. On AMD systems, enable IOMMU in firmware and verify IOMMU groups.
+
 ```text
-GRUB_CMDLINE_LINUX="amd_iommu=on nvidia_drm.modeset=0"
+GRUB_CMDLINE_LINUX="nvidia_drm.modeset=0"
 ```
 
 | Option | Purpose |
 | --- | --- |
-| `amd_iommu=on` | Enables IOMMU on AMD CPUs; needed for [VM support](/host/vms) and PCIe passthrough. |
-| `intel_iommu=on` | Use this instead of `amd_iommu=on` on Intel platforms. |
+| AMD IOMMU | Enable virtualization and IOMMU in firmware, then verify IOMMU groups before [VM setup](/host/vms). Linux 6.8 does not define `amd_iommu=on` as an enabling option. |
+| `intel_iommu=on` | Enables the Intel IOMMU driver on supported Intel platforms; firmware virtualization/IOMMU must also be configured. |
 | `nvidia_drm.modeset=0` | Disables NVIDIA kernel modesetting for VM compatibility. |
 
 Apply the changes:
@@ -260,19 +255,14 @@ sudo update-grub
 
 Forward the direct port range from outside your network to the host for both TCP and UDP. Set the port range for client instances if you did not already pass it to the installer. This 8-GPU example gives about 100 direct ports per listed GPU:
 
-```bash
-echo -n "40000-40799" | sudo tee /var/lib/vastai_kaalia/host_port_range
-sudo systemctl restart vastai.service
-sudo tail -n 50 /var/lib/vastai_kaalia/kaalia.log | grep host_port_range
-```
+<HostPortRange />
 
-Use `echo -n` so the file contains only the dash-separated range.
 
-Size the range for the number of GPUs you plan to list with [Network & Ports](/host/network-ports#ports-per-gpu). Test that ports are reachable **from outside your LAN**: same-LAN tests can fail from NAT hairpinning. One option is to run `sudo nc -l -p PORT` on the host and check from an external network or [portchecker.co](https://portchecker.co).
+Size the range for the number of GPUs you plan to list with [Network & Ports](/host/network-ports#ports-per-gpu). Test that ports are reachable **from outside your LAN**, even if a same-LAN test passes through NAT hairpinning. A local pass can miss double-NAT forwarding problems or ISP firewall restrictions. Follow the [external port-test steps](/host/network-ports#test-ports-outside-lan).
 
 ## Step 10: Fix NVML Error If Needed
 
-If the installer reports an NVML error, treat it as an NVIDIA driver/library mismatch or GPU driver health issue. Plan downtime, reboot first, then reinstall or repair the NVIDIA driver stack if the mismatch remains.
+If the installer reports an NVML error, record the exact message and inspect the NVIDIA/kernel logs. For **Driver/library version mismatch**, plan downtime and reboot to load the installed module, then repair the driver stack if the mismatch remains. Diagnose other NVML errors on their own evidence.
 
 ## Step 11: Reboot And Verify
 
@@ -280,10 +270,10 @@ If the installer reports an NVML error, treat it as an NVIDIA driver/library mis
 sudo reboot
 ```
 
-After reboot, check everything is healthy:
+After reboot, inspect storage, quota state, service status, the configured ports and GPU visibility:
 
 ```bash
-# Check NVMe is mounted to /var/lib/docker
+# Check Docker storage capacity, mount, and project quotas
 df -h /var/lib/docker
 findmnt /var/lib/docker -no SOURCE,FSTYPE,OPTIONS
 sudo xfs_quota -x -c "state" /var/lib/docker
@@ -301,8 +291,8 @@ nvidia-smi
 ## Step 12: List, Self-Test, And Monitor
 
 1. List the machine and set pricing.
-2. Run the self-test from any machine with the CLI: [How to Self-Test](/host/how-to-self-test). If the installer starts the self-test automatically, it may wait about 10 minutes for the daemon to initialize; watch `/var/lib/vastai_kaalia/self_test.log`.
-3. If you run self-test from the same network as the host, your router must allow loopback (NAT hairpinning). Otherwise, run it from a cloud VM or a mobile connection.
+2. Choose the [Web UI or Vast CLI self-test](/host/how-to-self-test). If the installer starts its self-test helper automatically, that helper waits about 10 minutes before the attempt; watch `/var/lib/vastai_kaalia/self_test.log`.
+3. For the CLI self-test, run the command on a computer outside the host’s network, such as a cloud VM or a laptop on mobile data. A test running on the host or elsewhere on its LAN does not establish Internet reachability, even when NAT hairpinning is enabled.
 4. Watch the first day over SSH: keep an eye on `vastai.service`, Docker, GPU visibility, port reachability, and the self-test log.
 
 ## Related Pages

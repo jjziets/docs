@@ -9,37 +9,37 @@ personas:
 
 <div className="persona-chips"><span className="persona-chip">Business</span><span className="persona-chip">Pro Operator</span></div>
 
-Use this page after your machine is ready to list. Hardware matters, but listing settings decide who can find and rent it.
+Use this page after your machine is ready to list. Hardware and listing settings affect which searches and rental needs the offer can match.
 
 ## Core Rule
 
-Revenue is price multiplied by utilization. A high price with low occupancy can earn less than a moderate price with steady rentals.
+For a fixed GPU count and time period, compute revenue is proportional to hourly price multiplied by utilization. A high price with low occupancy can earn less than a moderate price with steady rentals.
 
 Before changing settings, compare similar machines by GPU model, GPU count, verification state, region, reliability, storage, bandwidth, and listing duration.
 
-Renters commonly filter by verification state, rental duration, and disk space. If your listing does not pass those filters, price alone will not make it visible to the renters you want.
+Renters can filter by verification state, rental duration and disk space. A lower price does not make an offer match filters it fails.
 
 ## Duration
 
-Longer durations can attract renters who value guaranteed availability, but they also lock you into the accepted price and end date.
+Longer durations can suit renters who need more time, but they extend the period you need to plan for. The [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145) states that an existing rental retains its original price through the current end date.
 
 | Shorter duration | Longer duration |
 | --- | --- |
 | More flexibility | Better fit for long jobs |
-| Easier to reprice | Longer price lock-in |
-| Less commitment | Stronger availability promise |
+| Shorter current price commitment | Longer current price commitment; see the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145). |
+| Shorter availability commitment | Longer availability commitment |
 
 Different renters value different commitment windows:
 
-| Renter need | Typical duration | Fit |
+| Renter need | Illustrative planning window | Fit |
 | --- | --- | --- |
-| Automated inference or burst work | Hours to days | Shorter offers preserve flexibility. |
-| Experiments and fine-tuning | Days to weeks | Medium durations can balance commitment and occupancy. |
-| Training runs or reserved capacity | Weeks to months | Longer offers can attract higher-value, stability-sensitive renters. |
+| Automated inference or burst work | Hours to days (illustrative example) | Consider shorter offers when they cover the expected job. |
+| Experiments and fine-tuning | Days to weeks (illustrative example) | Compare the required job time with the commitment you can support. |
+| Training runs or reserved capacity | Weeks to months (illustrative example) | Consider longer offers for jobs that need longer rental windows. |
 
-Only offer durations you can honor. Breaking an active rental contract harms renters, can hurt reliability, and may carry penalties under the hosting terms. For legal terms, use the [Hosting Agreement](/host/hosting-agreement).
+Only offer durations you can honor. The [Vast CLI guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/machines.py#L247-L251) warns that outages during client jobs can lower reliability. [Hosting Agreement — Hardware as a Service Payments](https://cloud.vast.ai/host/agreement) permits withholding for lost user data, excessive outages, extensive downtime, harm to the Vast brand, or provider breach/non-performance.
 
-If auto-extend is available for the listing, use it deliberately. Auto-extend can reduce churn for same-price or lower-price rentals, but it is still a commitment to keep the machine online while the extended contract is active.
+Use automatic extension deliberately and plan for the additional rental time. If you raise a resource price, the renter must accept the higher extension rate; the current term retains its original price. See the [Vast CLI listing guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/machines.py#L249-L257) and [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145).
 
 ## Price
 
@@ -52,11 +52,11 @@ Use comparable listings and [market metrics](/host/market-metrics). Adjust from 
 | Similar machines are cheaper | Matching the market until reliability/history improves |
 | Demand spikes | Rechecking price after existing contracts end |
 
-Price changes affect future rentals only. Existing rental contracts keep the terms accepted at rental time.
+Updated offer prices apply to new rentals. Existing rentals keep their current-term rate; a renter can accept a higher rate for an extension after the current end date. See the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145).
 
 ## Interruptible Minimum Bid
 
-The minimum bid is a floor, not your expected on-demand price. Set it near the lowest price you are willing to accept, often close to loaded power cost.
+The minimum bid is a floor, not your expected on-demand price. Choose the lowest price you are willing to accept after considering the operating costs you intend to cover.
 
 If the floor is too high, GPUs may sit idle. If it is too low, interruptible work may not cover operating cost. Do not set the floor close to the on-demand price just because that is the price you hope to receive.
 
@@ -84,13 +84,13 @@ Use the constraint as the pricing signal:
 
 | Smaller `min_gpu` | Larger `min_gpu` |
 | --- | --- |
-| More renters can use the machine | Better fit for full-node workloads |
-| Higher fragmentation risk | Lower fragmentation |
-| Can improve occupancy | Can miss small-job demand |
+| Allows smaller GPU groups | Requires larger GPU groups |
+| Small rentals can leave partial groups occupied | Keeps rentals in larger groups |
+| Can serve smaller GPU requests | Excludes requests below the minimum |
 
 For an 8-GPU machine, a `min_gpu` of `2` creates 2x, 4x, and 8x listing options. A `min_gpu` of `8` creates only a full-node option.
 
-For fleets, mix `min_gpu` values across machines instead of setting every host the same way.
+For fleets, consider different `min_gpu` values across machines when that matches the GPU group sizes renters need.
 
 | Machine | Example `min_gpu` | Listing options |
 | --- | --- | --- |
@@ -121,6 +121,6 @@ Basics that affect revenue:
 | Disk price | Is storage abundant or scarce? |
 | Bandwidth price | Is bandwidth unmetered or constrained? |
 | `min_gpu` | Do you want more small renters or cleaner full-node utilization? |
-| Auto-extend | Should same-price or lower-price rentals continue automatically? |
+| Auto-extend | Can you support more rental time, including an extension at a higher rate accepted by the renter? See the [Vast CLI price-increase guidance](https://github.com/vast-ai/vast-cli/blob/ecf32efa1d8d2f110f7de4118c30698bb7ae2fbd/vastai/cli/commands/price_increase.py#L123-L145). |
 
 For detailed pricing examples, see [Pricing Your Listing](/host/pricing-your-listing) and [Earnings & Pricing Model](/host/earning).
